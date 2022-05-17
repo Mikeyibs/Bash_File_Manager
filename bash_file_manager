@@ -1,0 +1,119 @@
+#!/bin/bash
+# zoo - This file takes in arguments from the command line that indicate what   +value it should look for and what files/dirs to lookin for said files.
+# If found it will strip the value tied to the measurement and output it to the +command line.
+#
+# Michael Ibrahim
+# 5/3/2022
+#
+# gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0, on
+# 5.4.0-105-generic X86_64 GNU/Linux
+#
+
+
+# Purpose - Finds and searches sub directories
+# Inputs - void
+# Outputs - void
+# Side Effects - If the correct file is found it will extract the correct data  +and place it into a temp file.
+function findSubDir
+{
+   # Using ls -d */ to search sub directories 
+   ls -d */ | while read f ; do
+      ls -a $f | while read i ; do
+         if [[ $i == $file ]] ; then
+            grep $measure $f/$file | cut -d ' ' -f 2 | awk ' { sum += $1 } END  +{ print sum }' >> data.txt
+         fi
+      done
+   done
+}
+
+
+# Purpose - Finds and searches files within the current directory
+# Inputs - void
+# Outputs - void
+# Side-Effects - If correct files are found it will extract the target data and +place it into a temp file. 
+function findCurDir 
+{
+   ls -a | while read f ; do
+      if [[ $f == $file ]] ; then
+         grep $measure $file | cut -d ' ' -f 2 | awk ' { sum += $1 } END {      +print sum } ' >> data.txt
+      fi
+   done
+}
+
+
+# Purpose - Finds and searches files within a sepcific directory set by the     +global dir var.
+# Inputs - Requires the global dir var to be set.
+# Outputs - void
+# Side-Effects - If the correct file/s is found it will extra the target data   +and place it into a temp file.
+function getValDir 
+{
+   grep $measure $dir/$file | cut -d ' ' -f 2 | awk ' { sum += $1 } END { print +sum }' >> data.txt
+                                                              1,1           Top
+# Main Logic
+# -------------------------------------
+
+
+# Establishing a variable for the cmd args.
+ar=$#
+
+
+# Decision tree if the cmd args = 1
+if (( $ar==1 )) ; then
+   measure=$1
+   file=".KS_dir"
+   findCurDir
+   findSubDir
+   awk -v mes=$measure ' { sum += $1 } END { print mes " "  sum  } ' data.txt
+fi
+
+
+# Decision tree if cmd args = 2
+# Checks only for dir since files require 2 args on their own.
+if (( $ar==2 )) ; then
+   if [[ -d $1 ]] ; then
+      dir=$1 measure=$2 file=".KS_dir"
+      getValDir
+      awk -v mes=$measure ' { sum += $1 } END { print mes " "  sum } ' data.    +txt ; else
+      echo "Directory does not exist"
+   fi
+fi
+
+
+# Decision tree if the cmd args = 3
+# Checks only for files since dir requires a single cmd arg.
+if (( $ar==3 )) ; then
+   if [[ -f $2 ]] ; then
+      file=$2
+      measure=$3
+      dir="N"
+      findSubDir
+      findCurDir
+      awk -v mes=$measure '{ sum += $1 } END { print mes " "  sum } ' data.     +txt ; else
+      echo "File does not exist"
+   fi
+fi
+
+
+# Decision tree if the cmd args = 4 or max
+if (( $ar==4 )) ; then
+   if [[ -f $2 ]] && [[ -d $3 ]] ; then
+      file=$2
+      measure=$4
+      dir=$3
+      getValDir
+      awk -v mes=$measure  ' { sum += $1 } END { print mes " " sum } ' data.    +txt ; else
+      echo "File and/or directory does not exist (check your spelling"
+   fi
+fi
+
+# Decision tree if cmd args > 4 therefore invalid
+if (( $ar > 4 )) ; then
+   echo "Too many arguments"
+fi
+
+# Removing the temp file used to store the data extracted from the files.
+if [[ -f data.txt ]] ; then
+   rm data.txt
+fi
+           
+
