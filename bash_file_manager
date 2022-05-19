@@ -1,8 +1,6 @@
 #!/bin/bash
 # zoo - This file takes in arguments from the command line that indicate what   +value it should look for and what files/dirs to lookin for said files.
 # If found it will strip the value tied to the measurement and output it to the +command line.
-#
-# Michael Ibrahim
 # 5/3/2022
 #
 # gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0, on
